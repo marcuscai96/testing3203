@@ -1,34 +1,21 @@
 pipeline {
-  agent any
-  stages {
-    stage('Build') {
-      parallel {
-        stage('Build') {
-          steps {
-            echo 'Building'
-          }
-        }
+	agent any
+	stages {
+		stage('Checkout SCM') {
+			steps {
+				git '/home/JenkinsDependencyCheckTest'
+			}
+		}
 
-        stage('Parrel Build') {
-          steps {
-            echo 'parrel build'
-          }
-        }
-
-      }
-    }
-
-    stage('Test') {
-      steps {
-        echo 'testing stage'
-      }
-    }
-
-    stage('Deploy') {
-      steps {
-        echo 'Deploy'
-      }
-    }
-
-  }
+		stage('OWASP DependencyCheck') {
+			steps {
+				dependencyCheck additionalArguments: '--format HTML --format XML', odcInstallation: 'Default'
+			}
+		}
+	}	
+	post {
+		success {
+			dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+		}
+	}
 }
